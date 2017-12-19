@@ -2,6 +2,9 @@ const { pass, fail, newScenario } = require('./logger');
 const config = require('./../config');
 const puppeteer = require('puppeteer');
 
+const UsernamePassword = require('./../pages/interactions/UsernamePassword');
+const MyServices = require('./../pages/portal/MyServices');
+
 const doStep = async (name, fn) => {
   try {
     await fn();
@@ -23,28 +26,31 @@ const oidcLogin = async (page) => {
       await page.goto(config.portal.url);
     });
 
+    const usernamePassword = new UsernamePassword(page);
+
     await doStep('enter email address', async () => {
-      await page.type('#username', config.credentials.username);
+      await usernamePassword.enterUsername(config.credentials.username);
     });
 
     await doStep('enter password', async () => {
-      await page.type('#password', config.credentials.password);
+      await usernamePassword.enterPassword(config.credentials.password);
     });
 
     await doStep('click sign-in', async () => {
-      await page.click('.button');
+      await usernamePassword.clickSignIn();
       await page.waitForNavigation();
     });
 
+    const myServices = new MyServices(page);
+
     await doStep('check back at portal logged in', async () => {
-      const url = page.url();
-      if (!url.startsWith(config.portal.url)) {
-        throw new Error(`Expected ${url} to start with portal url (${config.portal.url})`);
+      if (!page.url().startsWith(config.portal.url)) {
+        throw new Error(`Expected ${page.url()} to start with portal url (${config.portal.url})`);
       }
 
-      const signedInAs = await page.$eval('p.signed-in-as', e => e.innerText);
-      if (signedInAs !== `You are signed in as ${config.credentials.displayName}`) {
-        throw new Error(`Expected ${signedInAs} to be 'You are signed in as ${config.credentials.displayName}'`);
+      const signedInAs = await myServices.signedInAs();
+      if (signedInAs !== config.credentials.displayName) {
+        throw new Error(`Expected to be signed in as ${config.credentials.displayName} but was signed in as ${signedInAs}`);
       }
     });
   } finally {

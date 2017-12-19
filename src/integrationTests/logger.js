@@ -30,7 +30,7 @@ const fail = (step, reason) => {
 };
 
 const newScenario = (scenario) => {
-  console.log(`\x1b[1m${scenario}\x1b[22m`);
+  console.log(`\x1b[1m\x1b[34m${scenario}\x1b[22m\x1b[39m`);
 };
 
 module.exports = {
