@@ -12,6 +12,10 @@ class MyServices extends PageObject {
     }
     return signedInAsText;
   }
+
+  async signout() {
+    await this.page.click('a[href="/signout"]');
+  }
 }
 
 module.exports = MyServices;
